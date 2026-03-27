@@ -10,7 +10,6 @@ export const createRental = async (req, res, next) => {
     const { movieId } = req.body;
     const userId = req.user._id;
 
-    // Vérifier que le film existe
     const movie = await Movie.findById(movieId);
     if (!movie) {
       return res.status(404).json({
@@ -26,7 +25,6 @@ export const createRental = async (req, res, next) => {
       });
     }
 
-    // Vérifier si l'utilisateur a déjà loué ce film (location active)
     const existingRental = await Rental.findOne({
       user: userId,
       movie: movieId,
@@ -42,14 +40,12 @@ export const createRental = async (req, res, next) => {
       });
     }
 
-    // Créer la location
     const rental = await Rental.create({
       user: userId,
       movie: movieId,
       price: movie.price,
     });
 
-    // Populer les données pour la réponse
     await rental.populate("movie", "title poster price duration");
 
     res.status(201).json({
@@ -68,7 +64,7 @@ export const createRental = async (req, res, next) => {
 export const getMyRentals = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const { status } = req.query; // active, expired, all
+    const { status } = req.query;
 
     let query = { user: userId };
 
@@ -147,7 +143,6 @@ export const cancelRental = async (req, res, next) => {
       });
     }
 
-    // Vérifier que c'est bien la location de l'utilisateur
     if (rental.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
@@ -155,7 +150,6 @@ export const cancelRental = async (req, res, next) => {
       });
     }
 
-    // Vérifier que la location est encore active
     if (rental.status !== "active") {
       return res.status(400).json({
         success: false,
@@ -181,12 +175,10 @@ export const cancelRental = async (req, res, next) => {
 // @access  Private/Admin
 export const getRentalStats = async (req, res, next) => {
   try {
-    // Statistiques générales
     const totalRentals = await Rental.countDocuments();
     const activeRentals = await Rental.countDocuments({ status: "active" });
     const expiredRentals = await Rental.countDocuments({ status: "expired" });
 
-    // Revenus totaux
     const totalRevenue = await Rental.aggregate([
       {
         $group: {
@@ -196,7 +188,6 @@ export const getRentalStats = async (req, res, next) => {
       },
     ]);
 
-    // Films les plus loués
     const topMovies = await Rental.aggregate([
       {
         $group: {
@@ -232,7 +223,6 @@ export const getRentalStats = async (req, res, next) => {
       },
     ]);
 
-    // Locations par mois (6 derniers mois)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -274,9 +264,60 @@ export const getRentalStats = async (req, res, next) => {
     next(error);
   }
 };
+
 // @desc    Obtenir des recommandations personnalisées
 // @route   GET /api/rentals/recommendations
 // @access  Private
 export const getRecommendations = async (req, res, next) => {
- //TODO
+  try {
+    const userId = req.user._id;
+
+    const rentals = await Rental.find({ user: userId }).populate("movie");
+    const rentedMovieIds = rentals
+      .map((rental) => (rental.movie ? rental.movie._id : null))
+      .filter(Boolean);
+
+    let genres = [];
+    rentals.forEach((rental) => {
+      if (rental.movie && rental.movie.genre) {
+        genres.push(...rental.movie.genre);
+      }
+    });
+
+    const uniqueGenres = [...new Set(genres)];
+
+    let recommendations = [];
+
+    if (uniqueGenres.length > 0) {
+      recommendations = await Movie.find({
+        genre: { $in: uniqueGenres },
+        _id: { $nin: rentedMovieIds },
+        isAvailable: true,
+      })
+        .sort({ rating: -1 })
+        .limit(10);
+    } else {
+      const user = await User.findById(userId);
+      if (user && user.favoriteGenres && user.favoriteGenres.length > 0) {
+        recommendations = await Movie.find({
+          genre: { $in: user.favoriteGenres },
+          isAvailable: true,
+        })
+          .sort({ rating: -1 })
+          .limit(10);
+      } else {
+        recommendations = await Movie.find({ isAvailable: true })
+          .sort({ rentalCount: -1, rating: -1 })
+          .limit(10);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      count: recommendations.length,
+      data: recommendations,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
