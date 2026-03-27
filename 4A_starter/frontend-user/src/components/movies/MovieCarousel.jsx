@@ -29,7 +29,7 @@ function MovieCarousel({ title, movies }) {
 
   return movies.length > 0 && (
     <section className="py-8 group relative">
-      <h2 className="text-2xl md:text-3xl font-bold mb-6 px-4">{title}</h2>
+      <h2 className="text-2xl md:text-2xl font-bold mb-6 px-4">{title}</h2>
 
       {/* Bouton Gauche */}
       {canScrollLeft && (
