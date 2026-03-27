@@ -15,7 +15,7 @@ export const getAllMovies = async (req, res, next) => {
       });
     }
 
-    const limit = parseInt(req.query.limit, 10) || 50;
+    const limit = parseInt(req.query.limit, 10) || 1000;
     const page = parseInt(req.query.page, 10) || 1;
     const skip = (page - 1) * limit;
 
