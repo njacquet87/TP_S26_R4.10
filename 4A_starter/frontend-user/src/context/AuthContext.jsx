@@ -1,8 +1,22 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { authAPI, saveAuth, clearAuth, getUser } from "../services/api";
-import { use } from "react";
 
-const AuthContext = createContext();
+const fallbackResult = {
+  success: false,
+  error: "AuthProvider non disponible",
+};
+
+const AuthContext = createContext({
+  user: null,
+  loading: false,
+  login: async () => fallbackResult,
+  register: async () => fallbackResult,
+  logout: async () => {},
+  isAuthenticated: () => false,
+  updateProfile: async () => fallbackResult,
+  updateFavoriteGenres: async () => fallbackResult,
+  changePassword: async () => fallbackResult,
+});
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -134,7 +148,26 @@ export function AuthProvider({ children }) {
   };
   //Mettre à jour les genres favoris
   const updateFavoriteGenres = async (updatedGenres) => {
-    //TODO
+    try {
+      const response = await authAPI.updateFavoriteGenres(updatedGenres);
+
+      if (response.success) {
+        const updatedUser = response.data;
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        return { success: true };
+      }
+
+      return {
+        success: false,
+        error: response.message || "Erreur de mise à jour des genres favoris",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message || "Erreur de mise à jour des genres favoris",
+      };
+    }
   };
 
   // Changer le mot de passe
@@ -181,11 +214,5 @@ export function AuthProvider({ children }) {
 
 // Hook personnalisé
 export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-
-  return context;
+  return useContext(AuthContext);
 }

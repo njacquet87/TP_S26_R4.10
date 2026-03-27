@@ -1,5 +1,20 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
+const DEFAULT_GENRES = [
+  "Action",
+  "Aventure",
+  "Animation",
+  "Comédie",
+  "Crime",
+  "Documentaire",
+  "Drame",
+  "Fantastique",
+  "Horreur",
+  "Romance",
+  "Science-Fiction",
+  "Thriller",
+];
+
 /**
  * Fonction utilitaire pour gérer les requêtes fetch
  * @param {string} endpoint - L'endpoint de l'API
@@ -179,7 +194,7 @@ export const moviesAPI = {
    * @param {string} genre - Genre du film
    */
   getByGenre: async (genre) => {
-    // TODO
+    return await fetchAPI(`/movies/genre/${encodeURIComponent(genre)}`);
   },
 
   /**
@@ -280,7 +295,33 @@ export const genresAPI = {
    * Obtenir la liste des genres
    */
   getAll: async () => {
-    //TODO
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    try {
+      const response = await fetchAPI("/movies", { signal: controller.signal });
+
+      if (!response?.success || !Array.isArray(response?.data)) {
+        return { success: true, data: DEFAULT_GENRES };
+      }
+
+      const genres = [
+        ...new Set(
+          response.data.flatMap((movie) =>
+            Array.isArray(movie.genre) ? movie.genre : [],
+          ),
+        ),
+      ].sort((a, b) => a.localeCompare(b, "fr"));
+
+      return {
+        success: true,
+        data: genres.length ? genres : DEFAULT_GENRES,
+      };
+    } catch {
+      return { success: true, data: DEFAULT_GENRES };
+    } finally {
+      clearTimeout(timeoutId);
+    }
   },
 };
 

@@ -1,5 +1,6 @@
 // FavoriteGenres.jsx
 import { useState, useEffect } from "react";
+import { useCallback } from "react";
 
 // Services
 import { genresAPI } from "../services/api";
@@ -19,7 +20,7 @@ const FavoriteGenres = () => {
   const { user, updateFavoriteGenres } = useAuth();
 
   // Charger les genres
-  const fetchAllGenres = async () => {
+  const fetchAllGenres = useCallback(async () => {
     try {
       const result = await genresAPI.getAll();
       if (!result.success) {
@@ -31,7 +32,7 @@ const FavoriteGenres = () => {
     } catch (err) {
       error(err.message || "Erreur lors du chargement des genres");
     }
-  };
+  }, [error]);
 
   // Charger les genres au montage du composant ou lorsque l'utilisateur change
   useEffect(() => {
@@ -40,7 +41,7 @@ const FavoriteGenres = () => {
     if (user) {
       setFavoriteGenres(user.favoriteGenres || []);
     }
-  }, [user]);
+  }, [fetchAllGenres, user]);
 
   // Gérer la sélection/désélection d'un genre
   const handleGenreToggle = (genre) => async () => {
@@ -54,6 +55,7 @@ const FavoriteGenres = () => {
       if (!result.success) {
         throw new Error(result.message || "Erreur lors de la mise à jour");
       }
+      setFavoriteGenres(updatedGenres);
       success("Genres favoris mis à jour avec succès");
     } catch (err) {
       error(err.message || "Erreur lors de la mise à jour des genres favoris");

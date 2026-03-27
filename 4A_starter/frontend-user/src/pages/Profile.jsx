@@ -1,11 +1,12 @@
 // React
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 // Components
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/layout/Footer";
 import Loading from "../components/common/Loading";
 import LoadingError from "../components/common/LoadingError";
+import FavoriteGenres from "../components/FavoriteGenres";
 
 // Context
 import { useAuth } from "../context/AuthContext";
@@ -30,27 +31,31 @@ function Profile() {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   const { user, changePassword, updateProfile } = useAuth();
-  const { success } = useNotification();
+  const { success, error: notifyError } = useNotification();
 
-  // Effet pour charger les données du profil au montage du composant
-  useEffect(() => {
-    fetchUserProfile();
-  }, [user]);
-
-  // Fonction pour récupérer les données du profil utilisateur
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     setLoading(true);
     try {
+      if (!user) {
+        throw new Error("Utilisateur non connecté");
+      }
+
       setFormData({
         name: user.name,
         email: user.email,
       });
+      setError(null);
     } catch (err) {
       setError(err.message || "Erreur lors du chargement du profil");
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  // Effet pour charger les données du profil au montage du composant
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
 
   // Handlers pour les changements de formulaire et les actions de mise à jour du profil et de changement de mot de passe
   const handleFormChange = (e) => {
@@ -77,7 +82,7 @@ function Profile() {
       setEditing(false);
       success("Profil mis à jour avec succès");
     } catch (err) {
-      error(err.message || "Erreur lors de la mise à jour du profil");
+      notifyError(err.message || "Erreur lors de la mise à jour du profil");
     }
   };
 
@@ -86,7 +91,7 @@ function Profile() {
     e.preventDefault();
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      error("Les mots de passe ne correspondent pas");
+      notifyError("Les mots de passe ne correspondent pas");
       return;
     }
 
@@ -108,7 +113,7 @@ function Profile() {
       setShowPasswordForm(false);
       success("Mot de passe changé avec succès");
     } catch (err) {
-      error(err.message || "Erreur lors du changement de mot de passe");
+      notifyError(err.message || "Erreur lors du changement de mot de passe");
     }
   };
 
@@ -274,7 +279,7 @@ function Profile() {
           </div>
         </div>
 
-
+        <FavoriteGenres />
       </div>
 
       <Footer />
