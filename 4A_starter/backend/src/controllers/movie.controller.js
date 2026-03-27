@@ -39,7 +39,12 @@ export const getAllMovies = async (req, res, next) => {
 // @access  Public
 export const getMovieById = async (req, res, next) => {
   try {
+    if (req.params.id === "random") {
+      return getRandomMovies(req, res, next);
+    }
     const movie = await Movie.findById(req.params.id);
+    console.log(req.params.id);
+
 
     if (!movie) {
       return res.status(404).json({
