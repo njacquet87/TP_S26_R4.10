@@ -170,6 +170,9 @@ function Home() {
 
       {/* Hero Section */}
       <MovieHeroCarousel />
+
+      <hr />
+
       {/* Préférences utilisateur */}
       {isAuthenticated() && (
         <div className="container mx-auto px-4 mt-8">
@@ -188,7 +191,7 @@ function Home() {
           </div>
           {/* Films par genre préféré */}
           <div className="mt-10">
-            <h3 className="text-xl md:text-3xl font-bold mb-4">
+            <h3 className="text-xl md:text-3xl font-bold mb-4 underline">
               Films par genre préféré
             </h3>
             {favoriteGenres.map((genre) => {
