@@ -27,7 +27,7 @@ function Home() {
   // Fonction pour charger les films
   const fetchMovies = async () => {
     try {
-      setLoading(true);
+      setLoading(false);
 
       // Appel API avec fetch
       const response = await moviesAPI.getAll();
