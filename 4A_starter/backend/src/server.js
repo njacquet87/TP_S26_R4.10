@@ -65,6 +65,8 @@ import authRoutes from "./routes/auth.routes.js";
 app.use("/api/auth", authRoutes);
 import rentalRoutes from "./routes/rental.routes.js";
 app.use("/api/rentals", rentalRoutes);
+import genreRoutes from "./routes/genre.routes.js";
+app.use("/api/genres", genreRoutes);
 
 
 

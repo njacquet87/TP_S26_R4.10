@@ -1,0 +1,22 @@
+import Movie from "../models/Movie.js";
+
+/**
+ * @desc    Obtenir tous les genres uniques disponibles dans la base de films
+ * @route   GET /api/genres
+ * @access  Public
+ */
+export const getAllGenres = async (req, res, next) => {
+  try {
+    const genres = await Movie.distinct("genre", { isAvailable: true });
+    
+    genres.sort();
+
+    res.status(200).json({
+      success: true,
+      count: genres.length,
+      data: genres,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
