@@ -51,12 +51,81 @@ function Home() {
   }, []);
 
   //TODO: Charger les genres favoris de l'utilisateur
+  const [favoriteGenres, setFavoriteGenres] = useState([]);
+
+  const fetchFavoriteGenres = async () => {
+        try {
+      setLoading(false);
+
+      // Appel API avec fetch
+      const response = await moviesAPI.getByGenre(favoriteGenres[0]);
+
+      if (response.success) {
+        setMovies(response.data);
+      } else {
+        throw new Error(response.message || "Erreur lors du chargement");
+      }
+    } catch (err) {
+      error(err.message);
+      console.error("Error fetching movies:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   //TODO: Charger les films populaires
+  const [popularMovies, setPopularMovies] = useState([]);
+
+  const fetchPopularMovies = async () => {
+    try {
+      setLoading(false);
+      // Appel API avec fetch
+      const response = await moviesAPI.getPopular();
+      if (response.success) {
+        setPopularMovies(response.data);
+      } else {
+        throw new Error(response.message || "Erreur lors du chargement");
+      }
+    } catch (err) {
+      error(err.message);
+      console.error("Error fetching movies:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   //TODO: Charger les films récents
 
+  const [recentMovies, setRecentMovies] = useState([]);
+
+  const fetchRecentMovies = async () => {
+    try {
+      setLoading(false);
+      // Appel API avec fetch
+      const response = await moviesAPI.getRecent();
+      if (response.success) {
+        setRecentMovies(response.data);
+      } else {
+        throw new Error(response.message || "Erreur lors du chargement");
+      }
+    } catch (err) {
+      error(err.message);
+      console.error("Error fetching movies:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   //TODO: Charger les films pour chaque genre préféré
+  useEffect(() => {
+    if (isAuthenticated() && user && user.favoriteGenres) {
+      setFavoriteGenres(user.favoriteGenres);
+      fetchFavoriteGenres();
+      fetchPopularMovies();
+      fetchRecentMovies();
+    }
+  }, [isAuthenticated, user]);
+
 
   // État de chargement
   if (loading) {
@@ -87,8 +156,8 @@ function Home() {
       <MovieHeroCarousel />
       {/* Movies Lists */}
       <div className="container mx-auto">
-        <MovieCarousel title="Films populaires" movies={[]} />
-        <MovieCarousel title="Films récents" movies={[]} />
+        <MovieCarousel title="Films populaires" movies={popularMovies} />
+        <MovieCarousel title="Films récents" movies={recentMovies} />
       </div>
 
       <Footer />

@@ -201,14 +201,14 @@ export const moviesAPI = {
    * Obtenir les films récents
    */
   getRecent: async () => {
-    // TODO
+		return await fetchAPI("/movies/recent");
   },
 
   /**
    * Obtenir les films populaires
    */
   getPopular: async () => {
-    // TODO
+		return await fetchAPI("/movies/popular");
   },
 
   /**

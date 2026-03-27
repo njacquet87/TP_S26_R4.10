@@ -8,6 +8,9 @@ import {
   getMovieStats,
   getSimilarMovies,
   getMoviesByGenre,
+  getPopularMovies,
+  getRecentMovies,
+  getRandomMovies,
   likeMovie,
   unlikeMovie,
   getLikedMoviesByUser,
@@ -18,12 +21,12 @@ const router = express.Router();
 
 // Routes publiques
 router.get("/", getAllMovies);
-
-// Route pour obtenir un film par ID, ou les films populaires/récents/aléatoires
-router.get("/:id", getMovieById);
-
-router.get("/:id/similar", getSimilarMovies);
+router.get("/popular", getPopularMovies);
+router.get("/recent", getRecentMovies);
+router.get("/random", getRandomMovies);
 router.get("/genre/:genre", getMoviesByGenre);
+router.get("/:id/similar", getSimilarMovies);
+router.get("/:id", getMovieById);
 
 
 //Routes protégées pour les like
